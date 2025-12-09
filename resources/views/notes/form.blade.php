@@ -316,7 +316,7 @@ quill.on('text-change', async function(delta, oldDelta, source) {
     const match = text.match(pattern);
 
     if (!match) return;
-    console.log(match)
+    
     const fullTag = match[0];
     const surah = match[1];
     const startAyah = match[2];
@@ -330,7 +330,7 @@ quill.on('text-change', async function(delta, oldDelta, source) {
 
         const data = await res.json();
         if (!data.data) return;
-        console.log(data)
+        
         // Format output
         let output = "";
         // for (let i = 0; i < data.data[0].ayahs.length; i++) {
@@ -358,6 +358,57 @@ quill.on('text-change', async function(delta, oldDelta, source) {
     }
 });
 
+// ==============================
+// AUTO REPLACE HADIS TAG
+// ==============================
+quill.on('text-change', async function(delta, oldDelta, source) {
+    if (source !== 'user') return;
+
+    let text = quill.getText();
+
+    // Pola tag hadis:
+    // [muslim:123] atau [bukhari:45]
+    const pattern = /\[(muslim|bukhari):(\d{1,4})\]/i;
+    const match = text.match(pattern);
+
+    if (!match) return;
+
+    const fullTag = match[0];
+    const kitab = match[1].toLowerCase();
+    const number = match[2];
+
+    try {
+        // API database hadis
+        const res = await fetch(
+            `https://api.hadith.gading.dev/books/${kitab}/${number}`
+        );
+
+        const data = await res.json();
+
+        if (!data.data) return;
+
+        const hadisArab = data.data.contents.arab;
+        const hadisId = data.data.contents.id;
+
+        const output = `
+            <div class="hadith-block">
+                <div class="hadith-arabic">${hadisArab}</div>
+                <div class="hadith-translation">${hadisId}</div>
+                <div class="hadith-source">(${kitab.toUpperCase()} - No. ${number})</div>
+            </div>
+        `;
+
+        // Replace the tag in the editor
+        const index = text.indexOf(fullTag);
+        if (index >= 0) {
+            quill.deleteText(index, fullTag.length);
+            quill.clipboard.dangerouslyPasteHTML(index, output + "<br><br>");
+        }
+
+    } catch (e) {
+        console.error("Failed to load Hadith API", e);
+    }
+});
 
 </script>
 @endpush
