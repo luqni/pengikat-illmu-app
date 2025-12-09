@@ -311,8 +311,8 @@ quill.on('text-change', async function(delta, oldDelta, source) {
 
     let text = quill.getText();
 
-    // Regex tag: [quran:SURAH:AYAT] atau [quran:SURAH:START-END]
-    const pattern = /\[quran:(\d{1,3}):(\d{1,3})(?:-(\d{1,3}))?\]/i;
+    // Regex tag: (quran:SURAH:AYAT) atau (quran:SURAH:START-END)
+    const pattern = /\(quran:(\d{1,3}):(\d{1,3})(?:-(\d{1,3}))?\)/i;
     const match = text.match(pattern);
 
     if (!match) return;
@@ -368,7 +368,7 @@ quill.on('text-change', async function(delta, oldDelta, source) {
 
     // Pola tag hadis:
     // [muslim:123] atau [bukhari:45]
-    const pattern = /\[(muslim|bukhari):(\d{1,4})\]/i;
+    const pattern = /\((muslim|bukhari):(\d{1,4})\)/i;
     const match = text.match(pattern);
 
     if (!match) return;
