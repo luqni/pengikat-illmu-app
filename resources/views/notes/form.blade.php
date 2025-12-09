@@ -62,6 +62,11 @@
           <button id="btn-quran" type="button" class="btn btn-sm btn-outline-success ms-1">
             <i class="fa-solid fa-book-quran me-1"></i>
           </button>
+
+          <button id="btn-hadith" type="button" class="btn btn-sm btn-outline-warning ms-1">
+              <i class="fa-solid fa-book-open-reader"></i>
+          </button>
+
         </div>
 
 
@@ -121,6 +126,47 @@
           Ambil Ayat
         </button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PILIH HADIS -->
+<div class="modal fade" id="modalHadith" tabindex="-1">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">📚 Pilih Hadis — Bukhari & Muslim</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <label class="form-label">Pilih Kitab Hadis</label>
+        <select id="hadith-collection" class="form-select mb-3">
+            <option value="bukhari">Shahih Bukhari</option>
+            <option value="muslim">Shahih Muslim</option>
+        </select>
+
+        <label class="form-label">Nomor Hadis</label>
+        <input id="hadith-number" class="form-control" type="number"
+               placeholder="Masukkan nomor hadis…">
+
+        <small class="text-muted d-block mt-2">
+            Contoh: Bukhari 1–7000, Muslim 1–3000 (bergantung dataset)
+        </small>
+
+        <div id="hadith-preview" class="mt-3 p-2 border rounded bg-light small d-none">
+            <strong>Preview:</strong>
+            <div id="hadith-text" class="mt-1"></div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button id="insert-hadith" class="btn btn-warning">Insert ke Catatan</button>
+      </div>
+
     </div>
   </div>
 </div>
@@ -210,6 +256,109 @@
       });
   });
 
+  // OPEN MODAL
+document.getElementById('btn-hadith').addEventListener('click', function() {
+    new bootstrap.Modal(document.getElementById('modalHadith')).show();
+});
+
+// LOAD & PREVIEW HADIS
+document.getElementById('hadith-number').addEventListener('change', async function() {
+    const collection = document.getElementById('hadith-collection').value;
+    const number = this.value;
+
+    if (!number) return;
+
+    const url = `https://api.hadith.gading.dev/books/${collection}/${number}`;
+
+    document.getElementById('hadith-preview').classList.add('d-none');
+
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.data) {
+            document.getElementById('hadith-text').innerHTML =
+                `<strong>${data.data.name} No. ${number}</strong><br>${data.data.contents.arab}<br><em>${data.data.contents.id}</em>`;
+
+            document.getElementById('hadith-preview').classList.remove('d-none');
+        }
+    } catch (e) {
+        alert("Hadis tidak ditemukan!");
+    }
+});
+
+// INSERT KE QUILL
+document.getElementById('insert-hadith').addEventListener('click', function() {
+    const preview = document.getElementById('hadith-text').innerHTML;
+
+    if (!preview.trim()) {
+        alert("Tidak ada hadis untuk dimasukkan.");
+        return;
+    }
+
+    const range = quill.getSelection(true);
+    
+    quill.insertText(range.index, "\n");
+    quill.clipboard.dangerouslyPasteHTML(range.index, preview + "<br><br>");
+    
+
+    bootstrap.Modal.getInstance(document.getElementById('modalHadith')).hide();
+});
+
+// AUTO REPLACE QURAN TAG
+quill.on('text-change', async function(delta, oldDelta, source) {
+    if (source !== 'user') return;
+
+    let text = quill.getText();
+
+    // Regex tag: [quran:SURAH:AYAT] atau [quran:SURAH:START-END]
+    const pattern = /\[quran:(\d{1,3}):(\d{1,3})(?:-(\d{1,3}))?\]/i;
+    const match = text.match(pattern);
+
+    if (!match) return;
+    console.log(match)
+    const fullTag = match[0];
+    const surah = match[1];
+    const startAyah = match[2];
+    const endAyah = match[3] || match[2]; // kalau tidak ada range, ayat = start
+
+    try {
+        // Ambil ayat langsung dari API
+        const res = await fetch(
+            `https://api.alquran.cloud/v1/ayah/${surah}:${startAyah}-${endAyah}/editions/quran-uthmani,id.indonesian`
+        );
+
+        const data = await res.json();
+        if (!data.data) return;
+        console.log(data)
+        // Format output
+        let output = "";
+        // for (let i = 0; i < data.data[0].ayahs.length; i++) {
+            const arab = data.data[0].text;
+            const indo = data.data[1].text;
+
+            output += `
+                <div class="quran-block">
+                    <div class="quran-arabic">${arab}</div>
+                    <div class="quran-translation">${indo}</div>
+                    <div class="quran-translation">(QS. ${surah}:${startAyah})</div>
+                </div>
+            `;
+        // }
+
+        // Cari posisi tag dan ganti
+        const index = text.indexOf(fullTag);
+        if (index >= 0) {
+            quill.deleteText(index, fullTag.length);
+            quill.clipboard.dangerouslyPasteHTML(index, output + "<br><br>");
+        }
+
+    } catch (e) {
+        console.error("Failed to load Quran API", e);
+    }
+});
+
+
 </script>
 @endpush
 
@@ -290,6 +439,30 @@
 #btn-quran {
   font-weight: bold;
 }
+
+.quran-block {
+    padding: 10px 12px;
+    background: #f9f9ff;
+    border-left: 4px solid #4c6ef5;
+    border-radius: 6px;
+    margin-bottom: 12px;
+}
+
+.quran-arabic {
+    font-family: 'Scheherazade New', serif;
+    font-size: 22px;
+    line-height: 1.8;
+    direction: rtl;
+    text-align: right;
+    color: #222;
+}
+
+.quran-translation {
+    margin-top: 6px;
+    font-size: 14px;
+    color: #555;
+}
+
 </style>
 @endpush
 

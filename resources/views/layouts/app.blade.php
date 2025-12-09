@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Reenie+Beanie&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
 body { font-family: Inter, Arial, sans-serif; padding: 20px; }
@@ -18,6 +19,18 @@ body { font-family: Inter, Arial, sans-serif; padding: 20px; }
 .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="patrick"]::before { content: 'Patrick Hand'; }
 .ql-font-patrick { font-family: 'Patrick Hand', cursive; }
 .ql-font-reenie { font-family: 'Reenie Beanie', cursive; }
+
+#toolbar {
+  position: sticky;
+  top: 70px;            /* ✅ TURUN DI BAWAH HEADER */
+  z-index: 999;
+  background: #dadbdd; /* gelap */
+}
+
+/* Efek saat aktif */
+#toolbar.sticky-active {
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+}
 </style>
 </head>
 <body>
