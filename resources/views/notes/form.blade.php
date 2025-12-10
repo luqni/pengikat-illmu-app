@@ -11,7 +11,7 @@
 
 @section('content')
 <div class="container-fluid p-0">
-
+<div id="ql-loading">Loading...</div>
   <!-- CARD BUKU CATATAN -->
   <div class="card shadow-sm notebook rounded-0 border-0">
     <div class="card-header text-center fw-bold">
@@ -305,109 +305,115 @@ document.getElementById('insert-hadith').addEventListener('click', function() {
     bootstrap.Modal.getInstance(document.getElementById('modalHadith')).hide();
 });
 
-// AUTO REPLACE QURAN TAG
-quill.on('text-change', async function(delta, oldDelta, source) {
-    if (source !== 'user') return;
+document.addEventListener("DOMContentLoaded", function () {
+    const loadingBox = document.getElementById("ql-loading");
 
-    let text = quill.getText();
+    function showLoading() {
+        loadingBox.style.display = "inline-block";
+    }
 
-    // Regex tag: (quran:SURAH:AYAT) atau (quran:SURAH:START-END)
-    const pattern = /\(quran:(\d{1,3}):(\d{1,3})(?:-(\d{1,3}))?\)/i;
-    const match = text.match(pattern);
+    function hideLoading() {
+        loadingBox.style.display = "none";
+    }
 
-    if (!match) return;
-    
-    const fullTag = match[0];
-    const surah = match[1];
-    const startAyah = match[2];
-    const endAyah = match[3] || match[2]; // kalau tidak ada range, ayat = start
+    quill.on('text-change', async function(delta, oldDelta, source) {
+        if (source !== 'user') return;
 
-    try {
-        // Ambil ayat langsung dari API
-        const res = await fetch(
-            `https://api.alquran.cloud/v1/ayah/${surah}:${startAyah}-${endAyah}/editions/quran-uthmani,id.indonesian`
-        );
+        let text = quill.getText().trim();
 
-        const data = await res.json();
-        if (!data.data) return;
-        
-        // Format output
-        let output = "";
-        // for (let i = 0; i < data.data[0].ayahs.length; i++) {
-            const arab = data.data[0].text;
-            const indo = data.data[1].text;
+        // ==========================
+        // PATTERN QURAN: (quran:2:255) atau (quran:2:1-5)
+        // ==========================
+        const regexQuran = /\(quran:(\d{1,3}):(\d{1,3})(?:-(\d{1,3}))?\)/i;
+        let qMatch = text.match(regexQuran);
 
-            output += `
-                <div class="quran-block">
-                    <div class="quran-arabic">${arab}</div>
-                    <div class="quran-translation">${indo}</div>
-                    <div class="quran-translation">(QS. ${surah}:${startAyah})</div>
-                </div>
-            `;
-        // }
+        // ==========================
+        // PATTERN HADIS: (muslim:12) atau (bukhari:55)
+        // ==========================
+        const regexHadith = /\((muslim|bukhari):(\d{1,4})\)/i;
+        let hMatch = text.match(regexHadith);
 
-        // Cari posisi tag dan ganti
-        const index = text.indexOf(fullTag);
-        if (index >= 0) {
-            quill.deleteText(index, fullTag.length);
-            quill.clipboard.dangerouslyPasteHTML(index, output + "<br><br>");
+        // ==========================
+        // PROSES QURAN
+        // ==========================
+        if (qMatch) {
+            const fullTag = qMatch[0];
+            const surah = qMatch[1];
+            const start = qMatch[2];
+            const end = qMatch[3] || start;
+
+            showLoading();
+            try {
+                const res = await fetch(
+                    `https://api.alquran.cloud/v1/ayah/${surah}:${start}-${end}/editions/quran-uthmani,id.indonesian`
+                );
+
+                const data = await res.json();
+
+                if (data.data && data.data.length >= 2) {
+                    const arab = data.data[0].text;
+                    const indo = data.data[1].text;
+
+                    const output = `
+                        <div class="quran-block">
+                            <div class="quran-arabic" style="font-size:22px; text-align:right;">${arab}</div>
+                            <div class="quran-translation" style="font-size:14px; color:#444;">${indo}</div>
+                            <div class="quran-ref" style="font-size:12px; color:#777;">(QS. ${surah}:${start})</div>
+                        </div>
+                    `;
+
+                    const index = text.indexOf(fullTag);
+                    quill.deleteText(index, fullTag.length);
+                    quill.clipboard.dangerouslyPasteHTML(index, output + "<br>");
+                }
+
+            } catch (e) {
+                console.error("Quran API Failed", e);
+            }
+
+            hideLoading();
         }
 
-    } catch (e) {
-        console.error("Failed to load Quran API", e);
-    }
-});
+        // ==========================
+        // PROSES HADIS
+        // ==========================
+        if (hMatch) {
+            const fullTag = hMatch[0];
+            const kitab = hMatch[1];
+            const number = hMatch[2];
 
-// ==============================
-// AUTO REPLACE HADIS TAG
-// ==============================
-quill.on('text-change', async function(delta, oldDelta, source) {
-    if (source !== 'user') return;
+            showLoading();
+            try {
+                const res = await fetch(
+                    `https://api.hadith.gading.dev/books/${kitab}/${number}`
+                );
 
-    let text = quill.getText();
+                const data = await res.json();
 
-    // Pola tag hadis:
-    // [muslim:123] atau [bukhari:45]
-    const pattern = /\((muslim|bukhari):(\d{1,4})\)/i;
-    const match = text.match(pattern);
+                if (data.data?.contents) {
+                    const arab = data.data.contents.arab;
+                    const indo = data.data.contents.id;
 
-    if (!match) return;
+                    const output = `
+                        <div class="hadith-block">
+                            <div class="hadith-arabic" style="font-size:20px; text-align:right;">${arab}</div>
+                            <div class="hadith-translation" style="font-size:14px; color:#444;">${indo}</div>
+                            <div class="hadith-source" style="font-size:12px; color:#777;">(HR. ${kitab.toUpperCase()} No. ${number})</div>
+                        </div>
+                    `;
 
-    const fullTag = match[0];
-    const kitab = match[1].toLowerCase();
-    const number = match[2];
+                    const index = text.indexOf(fullTag);
+                    quill.deleteText(index, fullTag.length);
+                    quill.clipboard.dangerouslyPasteHTML(index, output + "<br>");
+                }
 
-    try {
-        // API database hadis
-        const res = await fetch(
-            `https://api.hadith.gading.dev/books/${kitab}/${number}`
-        );
+            } catch (e) {
+                console.error("Hadith API Failed", e);
+            }
 
-        const data = await res.json();
-
-        if (!data.data) return;
-
-        const hadisArab = data.data.contents.arab;
-        const hadisId = data.data.contents.id;
-
-        const output = `
-            <div class="hadith-block">
-                <div class="hadith-arabic">${hadisArab}</div>
-                <div class="hadith-translation">${hadisId}</div>
-                <div class="hadith-source">(${kitab.toUpperCase()} - No. ${number})</div>
-            </div>
-        `;
-
-        // Replace the tag in the editor
-        const index = text.indexOf(fullTag);
-        if (index >= 0) {
-            quill.deleteText(index, fullTag.length);
-            quill.clipboard.dangerouslyPasteHTML(index, output + "<br><br>");
+            hideLoading();
         }
-
-    } catch (e) {
-        console.error("Failed to load Hadith API", e);
-    }
+    });
 });
 
 </script>
@@ -513,7 +519,18 @@ quill.on('text-change', async function(delta, oldDelta, source) {
     font-size: 14px;
     color: #555;
 }
-
+#ql-loading {
+    display: none;
+    position: absolute;
+    top: 5px;
+    right: 15px;
+    background: #fff;
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 99;
+}
 </style>
 @endpush
 
