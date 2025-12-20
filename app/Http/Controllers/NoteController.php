@@ -16,7 +16,8 @@ class NoteController extends Controller
      */
     public function index()
     {
-        $notes = Note::latest()->paginate(10);
+        $notes = auth()->user()->notes()->latest()->paginate(10);
+    
         return view('notes.index', compact('notes'));
     }
 
@@ -39,7 +40,7 @@ class NoteController extends Controller
         ]);
 
 
-        Note::create($data);
+        auth()->user()->notes()->create($request->only('title', 'content'));
 
 
         return redirect()->route('notes.index')->with('success', 'Note saved');
@@ -50,6 +51,10 @@ class NoteController extends Controller
      */
     public function show(Note $note)
     {
+        if ($note->user_id !== auth()->id()) {
+        abort(403);
+    }
+
         return view('notes.show', compact('note'));
     }
 

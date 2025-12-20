@@ -11,7 +11,7 @@
 
 @section('content')
 <div class="container-fluid p-0">
-<div id="ql-loading">Loading...</div>
+
   <!-- CARD BUKU CATATAN -->
   <div class="card shadow-sm notebook rounded-0 border-0">
     <div class="card-header text-center fw-bold">
@@ -305,116 +305,109 @@ document.getElementById('insert-hadith').addEventListener('click', function() {
     bootstrap.Modal.getInstance(document.getElementById('modalHadith')).hide();
 });
 
-document.addEventListener("DOMContentLoaded", function () {
-    const loadingBox = document.getElementById("ql-loading");
+let isProcessingQuran = false;
+let isProcessingHadith = false;
 
-    function showLoading() {
-        loadingBox.style.display = "inline-block";
-    }
+quill.on("text-change", async function (delta, old, source) {
+    if (source !== "user") return;
 
-    function hideLoading() {
-        loadingBox.style.display = "none";
-    }
+    if (isProcessingQuran || isProcessingHadith) return;
 
-    quill.on('text-change', async function(delta, oldDelta, source) {
-        if (source !== 'user') return;
+    const text = quill.getText();
+    const html = quill.root.innerHTML;
 
-        let text = quill.getText().trim();
+    const regexQuran = /\(quran:(\d{1,3}):(\d{1,3})(?:-(\d{1,3}))?\)/i;
+    const regexHadith = /\((muslim|bukhari):(\d{1,4})\)/i;
 
-        // ==========================
-        // PATTERN QURAN: (quran:2:255) atau (quran:2:1-5)
-        // ==========================
-        const regexQuran = /\(quran:(\d{1,3}):(\d{1,3})(?:-(\d{1,3}))?\)/i;
-        let qMatch = text.match(regexQuran);
+    const qMatch = text.match(regexQuran);
+    const hMatch = text.match(regexHadith);
 
-        // ==========================
-        // PATTERN HADIS: (muslim:12) atau (bukhari:55)
-        // ==========================
-        const regexHadith = /\((muslim|bukhari):(\d{1,4})\)/i;
-        let hMatch = text.match(regexHadith);
+    // =======================
+    // QURAN
+    // =======================
+    if (qMatch) {
+        isProcessingQuran = true;
 
-        // ==========================
-        // PROSES QURAN
-        // ==========================
-        if (qMatch) {
-            const fullTag = qMatch[0];
-            const surah = qMatch[1];
-            const start = qMatch[2];
-            const end = qMatch[3] || start;
+        const fullTag = qMatch[0];
+        const surah = qMatch[1];
+        const start = qMatch[2];
+        const end = qMatch[3] || start;
 
-            showLoading();
-            try {
-                const res = await fetch(
-                    `https://api.alquran.cloud/v1/ayah/${surah}:${start}-${end}/editions/quran-uthmani,id.indonesian`
-                );
+        try {
+            const res = await fetch(
+                `https://api.alquran.cloud/v1/ayah/${surah}:${start}-${end}/editions/quran-uthmani,id.indonesian`
+            );
+            const data = await res.json();
 
-                const data = await res.json();
+            if (data.data) {
+                const arab = data.data[0].text;
+                const indo = data.data[1].text;
 
-                if (data.data && data.data.length >= 2) {
-                    const arab = data.data[0].text;
-                    const indo = data.data[1].text;
+                const output = `
+                    <div class="quran-block">
+                        <div class="quran-arabic">${arab}</div>
+                        <div class="quran-translation">${indo}</div>
+                        <div class="quran-ref">(QS. ${surah}:${start})</div>
+                    </div><br>
+                `;
 
-                    const output = `
-                        <div class="quran-block">
-                            <div class="quran-arabic" style="font-size:22px; text-align:right;">${arab}</div>
-                            <div class="quran-translation" style="font-size:14px; color:#444;">${indo}</div>
-                            <div class="quran-ref" style="font-size:12px; color:#777;">(QS. ${surah}:${start})</div>
-                        </div>
-                    `;
-
-                    const index = text.indexOf(fullTag);
-                    quill.deleteText(index, fullTag.length);
-                    quill.clipboard.dangerouslyPasteHTML(index, output + "<br>");
+                const index = text.indexOf(fullTag);
+                if (index !== -1) {
+                    quill.deleteText(index, fullTag.length, "silent");
+                    quill.clipboard.dangerouslyPasteHTML(index, output, "silent");
                 }
-
-            } catch (e) {
-                console.error("Quran API Failed", e);
             }
-
-            hideLoading();
+        } catch (e) {
+            console.error("Quran error", e);
         }
 
-        // ==========================
-        // PROSES HADIS
-        // ==========================
-        if (hMatch) {
-            const fullTag = hMatch[0];
-            const kitab = hMatch[1];
-            const number = hMatch[2];
+        setTimeout(() => isProcessingQuran = false, 300);
+        return;
+    }
 
-            showLoading();
-            try {
-                const res = await fetch(
-                    `https://api.hadith.gading.dev/books/${kitab}/${number}`
-                );
+    // =======================
+    // HADITH
+    // =======================
+    if (hMatch) {
+        isProcessingHadith = true;
 
-                const data = await res.json();
+        const fullTag = hMatch[0];
+        const kitab = hMatch[1];
+        const number = hMatch[2];
 
-                if (data.data?.contents) {
-                    const arab = data.data.contents.arab;
-                    const indo = data.data.contents.id;
+        try {
+            const res = await fetch(
+                `https://api.hadith.gading.dev/books/${kitab}/${number}`
+            );
+            const data = await res.json();
 
-                    const output = `
-                        <div class="hadith-block">
-                            <div class="hadith-arabic" style="font-size:20px; text-align:right;">${arab}</div>
-                            <div class="hadith-translation" style="font-size:14px; color:#444;">${indo}</div>
-                            <div class="hadith-source" style="font-size:12px; color:#777;">(HR. ${kitab.toUpperCase()} No. ${number})</div>
-                        </div>
-                    `;
+            if (data.data?.contents) {
+                const arab = data.data.contents.arab;
+                const indo = data.data.contents.id;
 
-                    const index = text.indexOf(fullTag);
-                    quill.deleteText(index, fullTag.length);
-                    quill.clipboard.dangerouslyPasteHTML(index, output + "<br>");
+                const output = `
+                    <div class="hadith-block">
+                        <div class="hadith-arabic">${arab}</div>
+                        <div class="hadith-translation">${indo}</div>
+                        <div class="hadith-source">(HR. ${kitab.toUpperCase()} No. ${number})</div>
+                    </div><br>
+                `;
+
+                const index = text.indexOf(fullTag);
+                if (index !== -1) {
+                    quill.deleteText(index, fullTag.length, "silent");
+                    quill.clipboard.dangerouslyPasteHTML(index, output, "silent");
                 }
-
-            } catch (e) {
-                console.error("Hadith API Failed", e);
             }
-
-            hideLoading();
+        } catch (e) {
+            console.error("Hadith error", e);
         }
-    });
+
+        setTimeout(() => isProcessingHadith = false, 300);
+    }
 });
+
+
 
 </script>
 @endpush
