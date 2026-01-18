@@ -14,9 +14,19 @@ class NoteController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $notes = auth()->user()->notes()->latest()->paginate(10);
+        $query = auth()->user()->notes()->latest();
+
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('content', 'like', "%{$search}%");
+            });
+        }
+
+        $notes = $query->paginate(10);
     
         return view('notes.index', compact('notes'));
     }

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Pengikat Ilmu</title>
+<title>Demi Pena</title>
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 <!-- Google Fonts: handwriting-like -->
 <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Reenie+Beanie&display=swap" rel="stylesheet">
