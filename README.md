@@ -1,59 +1,123 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Demi Pena 🖋️
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+**Demi Pena** adalah aplikasi pencatat modern (Note-Taking App) yang dirancang khusus dengan fitur-fitur Islami untuk memudahkan pencatatan ilmu, tadabbur Al-Qur'an, dan hadits.
 
-## About Laravel
+Aplikasi ini mengusung desain **"Glassmorphism"** yang bersih, modern, dan mobile-first, memberikan pengalaman menulis yang tenang dan fokus.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+![Demi Pena Banner](docs/images/banner_placeholder.png)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## ✨ Fitur Utama
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+-   **Editor Full-Width & Seamless**: Pengalaman menulis tanpa gangguan dengan tampilan seperti kertas penuh.
+-   **Smart Quran Import**:
+    -   Ketik `(quran:kahfi:1-10)` untuk otomatis menyisipkan ayat Al-Qur'an beserta terjemahannya.
+    -   **Auto-Correction / Spell Checker**: Salah ketik nama surat? (contoh: `alkahfii`) Sistem akan memberikan saran perbaikan via popup pintar.
+    -   **Verse Suggestion**: Modal pencarian surat dan ayat yang mudah digunakan.
+-   **Hadith Import**: Ketik `(muslim:1)` untuk menyisipkan hadits.
+-   **OCR (Image to Text)**: Scan tulisan dari buku atau gambar langsung ke editor.
+-   **Modern UI/UX**:
+    -   Sticky Header & Floating Bottom Navigation.
+    -   Dark Mode Support 🌙.
+    -   Auto-dismissing alerts.
+    -   Live Search Catatan.
 
-## Learning Laravel
+## 🛠️ Teknologi yang Digunakan
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Aplikasi ini dibangun menggunakan stack modern yang handal:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+-   **Backend**: [Laravel](https://laravel.com/) (PHP)
+-   **Frontend**: [Blade Templates](https://laravel.com/docs/blade)
+-   **Styling**: [Tailwind CSS](https://tailwindcss.com/) (Mobile-First, Custom Fonts)
+-   **Editor**: [Quill.js](https://quilljs.com/) (Wysiwyg Rich Text Editor)
+-   **Bundler**: [Vite](https://vitejs.dev/)
+-   **Icons**: [Font Awesome 6](https://fontawesome.com/)
+-   **Database**: SQLite (Default) / MySQL compatible.
 
-## Laravel Sponsors
+### Integrasi API Eksternal
+-   **Al-Quran**: `api.alquran.cloud`
+-   **Hadith**: `api.hadith.gading.dev`
+-   **OCR Engine**: `ocr.space`
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+## 🚀 Cara Install & Menjalankan
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Ikuti langkah berikut untuk menjalankan project di komputer lokal anda:
 
-## Contributing
+### Prasyarat
+-   PHP >= 8.1
+-   Composer
+-   Node.js & NPM
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Langkah-langkah
 
-## Code of Conduct
+1.  **Clone Repository**
+    ```bash
+    git clone https://github.com/username/demi-pena.git
+    cd demi-pena
+    ```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+2.  **Install Dependencies Backend**
+    ```bash
+    composer install
+    ```
 
-## Security Vulnerabilities
+3.  **Install Dependencies Frontend**
+    ```bash
+    npm install
+    ```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+4.  **Konfigurasi Environment**
+    Salin file `.env.example` menjadi `.env`:
+    ```bash
+    cp .env.example .env
+    ```
+    Generate application key:
+    ```bash
+    php artisan key:generate
+    ```
 
-## License
+5.  **Setup Database**
+    Secara default menggunakan SQLite. Pastikan file database ada:
+    ```bash
+    touch database/database.sqlite
+    ```
+    Jalankan migrasi:
+    ```bash
+    php artisan migrate
+    ```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+6.  **Build Assets**
+    ```bash
+    npm run build
+    ```
+    *(Atau gunakan `npm run dev` untuk development mode)*
+
+7.  **Jalankan Server**
+    ```bash
+    php artisan serve
+    ```
+
+Akses aplikasi di: `http://localhost:8000`
+
+---
+
+## 📸 Screenshots
+
+| Welcome Page | Dashboard |
+|:---:|:---:|
+| ![Welcome](docs/images/welcome.png) | ![Dashboard](docs/images/dashboard.png) |
+
+| Editor (Clean) | Smart Suggestion |
+|:---:|:---:|
+| ![Editor](docs/images/editor.png) | ![Suggestion](docs/images/suggestion.png) |
+
+| Profile (Dark Mode) | Quran Modal |
+|:---:|:---:|
+| ![Profile](docs/images/profile.png) | ![Modal](docs/images/modal.png) |
+
+---
+
+## 📝 Lisensi
+
+[MIT License](LICENSE). Dibuat dengan ❤️ untuk Penuntut Ilmu.
