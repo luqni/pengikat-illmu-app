@@ -106,15 +106,15 @@ Akses aplikasi di: `http://localhost:8000`
 
 | Welcome Page | Dashboard |
 |:---:|:---:|
-| ![Welcome](docs/images/welcome.png) | ![Dashboard](docs/images/dashboard.png) |
+| ![Welcome](docs/images/banner_placeholder.png) | ![Dashboard](docs/images/dashboard.png) |
 
 | Editor (Clean) | Smart Suggestion |
 |:---:|:---:|
-| ![Editor](docs/images/editor.png) | ![Suggestion](docs/images/suggestion.png) |
+| ![Editor](docs/images/shownote.png) | ![Suggestion](docs/images/editor.png) |
 
-| Profile (Dark Mode) | Quran Modal |
-|:---:|:---:|
-| ![Profile](docs/images/profile.png) | ![Modal](docs/images/modal.png) |
+| Profile (Dark Mode) |
+|:---:|
+| ![Profile](docs/images/profile.png) |
 
 ---
 
